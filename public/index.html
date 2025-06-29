@@ -1,0 +1,396 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Languella - AI Language Learning</title>
+    <meta name="description" content="Learn languages with AI-powered conversations and personalized practice">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/styles.css">
+    
+    <!-- Meta tags for PWA -->
+    <meta name="theme-color" content="#f8f9fa">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Languella">
+</head>
+<body>
+    <div id="app">
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="loading-screen">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p>Loading Languella...</p>
+            </div>
+        </div>
+
+        <!-- Auth Screens -->
+        <div id="auth-container" class="auth-container hidden">
+            <!-- Login Screen -->
+            <div id="login-screen" class="auth-screen">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h1 class="brand">Languella</h1>
+                        <p class="auth-subtitle">Learn languages with AI</p>
+                    </div>
+                    
+                    <form id="login-form" class="auth-form">
+                        <div class="form-group">
+                            <input type="email" id="login-email" placeholder="Email" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" id="login-password" placeholder="Password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Sign In</button>
+                    </form>
+                    
+                    <div class="auth-links">
+                        <a href="#" id="forgot-password-link">Forgot password?</a>
+                        <p>Don't have an account? <a href="#" id="show-signup">Sign up</a></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Signup Screen -->
+            <div id="signup-screen" class="auth-screen hidden">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h1 class="brand">Languella</h1>
+                        <p class="auth-subtitle">Start your language journey</p>
+                    </div>
+                    
+                    <form id="signup-form" class="auth-form">
+                        <div class="form-group">
+                            <input type="text" id="signup-name" placeholder="Display Name" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" id="signup-email" placeholder="Email" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" id="signup-password" placeholder="Password (min 6 characters)" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Create Account</button>
+                    </form>
+                    
+                    <div class="auth-links">
+                        <p>Already have an account? <a href="#" id="show-login">Sign in</a></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Language Selection Screen -->
+            <div id="language-selection-screen" class="auth-screen hidden">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h1>Choose Your Language</h1>
+                        <p class="auth-subtitle">What language would you like to study?</p>
+                    </div>
+                    
+                    <div class="language-grid">
+                        <button class="language-card" data-language="spanish">
+                            <span class="language-flag">🇪🇸</span>
+                            <span class="language-name">Spanish</span>
+                        </button>
+                        <button class="language-card" data-language="french">
+                            <span class="language-flag">🇫🇷</span>
+                            <span class="language-name">French</span>
+                        </button>
+                        <button class="language-card" data-language="german">
+                            <span class="language-flag">🇩🇪</span>
+                            <span class="language-name">German</span>
+                        </button>
+                        <button class="language-card" data-language="italian">
+                            <span class="language-flag">🇮🇹</span>
+                            <span class="language-name">Italian</span>
+                        </button>
+                        <button class="language-card" data-language="portuguese">
+                            <span class="language-flag">🇵🇹</span>
+                            <span class="language-name">Portuguese</span>
+                        </button>
+                        <button class="language-card" data-language="japanese">
+                            <span class="language-flag">🇯🇵</span>
+                            <span class="language-name">Japanese</span>
+                        </button>
+                        <button class="language-card" data-language="korean">
+                            <span class="language-flag">🇰🇷</span>
+                            <span class="language-name">Korean</span>
+                        </button>
+                        <button class="language-card" data-language="chinese">
+                            <span class="language-flag">🇨🇳</span>
+                            <span class="language-name">Chinese</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main App -->
+        <div id="main-app" class="main-app hidden">
+            <!-- Desktop Sidebar -->
+            <nav id="sidebar" class="sidebar">
+                <div class="sidebar-header">
+                    <h2 class="brand">Languella</h2>
+                </div>
+                <ul class="sidebar-nav">
+                    <li><a href="#" data-page="chat" class="nav-link active"><i class="fas fa-comments"></i> Chat</a></li>
+                    <li><a href="#" data-page="vocabulary" class="nav-link"><i class="fas fa-book"></i> Vocabulary</a></li>
+                    <li><a href="#" data-page="practice" class="nav-link"><i class="fas fa-dumbbell"></i> Practice</a></li>
+                    <li><a href="#" data-page="profile" class="nav-link"><i class="fas fa-user"></i> Profile</a></li>
+                </ul>
+                <div class="sidebar-footer">
+                    <button id="logout-btn" class="btn btn-outline"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                </div>
+            </nav>
+
+            <!-- Mobile Bottom Navigation -->
+            <nav id="bottom-nav" class="bottom-nav">
+                <a href="#" data-page="chat" class="nav-item active">
+                    <i class="fas fa-comments"></i>
+                    <span>Chat</span>
+                </a>
+                <a href="#" data-page="vocabulary" class="nav-item">
+                    <i class="fas fa-book"></i>
+                    <span>Vocab</span>
+                </a>
+                <a href="#" data-page="practice" class="nav-item">
+                    <i class="fas fa-dumbbell"></i>
+                    <span>Practice</span>
+                </a>
+                <a href="#" data-page="profile" class="nav-item">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                </a>
+            </nav>
+
+            <!-- Main Content -->
+            <main id="main-content" class="main-content">
+                <!-- Chat Page -->
+                <div id="chat-page" class="page active">
+                    <div class="chat-container">
+                        <div class="chat-header">
+                            <h2>AI Conversation</h2>
+                            <div class="chat-controls">
+                                <button id="new-conversation-btn" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> New Chat
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="chat-messages" id="chat-messages">
+                            <div class="welcome-message">
+                                <div class="message ai-message">
+                                    <div class="message-content">
+                                        <p>¡Hola! I'm your AI language tutor. Let's practice your Spanish together! 🌟</p>
+                                        <div class="message-actions">
+                                            <button class="action-btn" data-action="translate">
+                                                <i class="fas fa-language"></i> Translate
+                                            </button>
+                                            <button class="action-btn" data-action="explain">
+                                                <i class="fas fa-info-circle"></i> Explain
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <form id="chat-form" class="chat-input-container">
+                            <div class="chat-input-wrapper">
+                                <textarea 
+                                    id="chat-input" 
+                                    placeholder="Type your message in any language..."
+                                    rows="1"
+                                ></textarea>
+                                <button type="submit" class="send-btn">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Vocabulary Page -->
+                <div id="vocabulary-page" class="page">
+                    <div class="page-header">
+                        <h2>My Vocabulary</h2>
+                        <button id="add-word-btn" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add Word
+                        </button>
+                    </div>
+                    
+                    <div class="vocabulary-filters">
+                        <select id="strength-filter">
+                            <option value="">All Strengths</option>
+                            <option value="new">New</option>
+                            <option value="learning">Learning</option>
+                            <option value="known">Known</option>
+                            <option value="mastered">Mastered</option>
+                        </select>
+                        <input type="text" id="tag-filter" placeholder="Filter by tag...">
+                    </div>
+                    
+                    <div id="vocabulary-list" class="vocabulary-list">
+                        <!-- Vocabulary items will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Practice Page -->
+                <div id="practice-page" class="page">
+                    <div class="page-header">
+                        <h2>Practice</h2>
+                    </div>
+                    
+                    <div class="practice-modes">
+                        <div class="practice-card" id="daily-review-card">
+                            <h3>Daily Review</h3>
+                            <p>Practice your saved vocabulary words</p>
+                            <div class="practice-stats">
+                                <span id="review-count">0 words to review</span>
+                            </div>
+                            <button class="btn btn-primary">Start Review</button>
+                        </div>
+                        
+                        <div class="practice-card" id="flashcards-card">
+                            <h3>Flashcards</h3>
+                            <p>Quick vocabulary drills</p>
+                            <button class="btn btn-primary">Start Flashcards</button>
+                        </div>
+                        
+                        <div class="practice-card" id="quiz-card">
+                            <h3>Quiz Mode</h3>
+                            <p>Test your knowledge</p>
+                            <button class="btn btn-primary">Take Quiz</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Page -->
+                <div id="profile-page" class="page">
+                    <div class="page-header">
+                        <h2>Profile</h2>
+                    </div>
+                    
+                    <div class="profile-content">
+                        <div class="profile-card">
+                            <div class="profile-info">
+                                <h3 id="profile-name">Loading...</h3>
+                                <p id="profile-email">Loading...</p>
+                                <div class="profile-stats">
+                                    <div class="stat">
+                                        <span class="stat-number" id="streak-count">0</span>
+                                        <span class="stat-label">Day Streak</span>
+                                    </div>
+                                    <div class="stat">
+                                        <span class="stat-number" id="words-learned">0</span>
+                                        <span class="stat-label">Words Learned</span>
+                                    </div>
+                                    <div class="stat">
+                                        <span class="stat-number" id="study-time">0</span>
+                                        <span class="stat-label">Hours Studied</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-card">
+                            <h3>Settings</h3>
+                            <form id="settings-form">
+                                <div class="form-group">
+                                    <label for="study-language">Study Language</label>
+                                    <select id="study-language">
+                                        <option value="spanish">Spanish</option>
+                                        <option value="french">French</option>
+                                        <option value="german">German</option>
+                                        <option value="italian">Italian</option>
+                                        <option value="portuguese">Portuguese</option>
+                                        <option value="japanese">Japanese</option>
+                                        <option value="korean">Korean</option>
+                                        <option value="chinese">Chinese</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="difficulty-level">Difficulty Level</label>
+                                    <select id="difficulty-level">
+                                        <option value="beginner">Beginner</option>
+                                        <option value="intermediate">Intermediate</option>
+                                        <option value="advanced">Advanced</option>
+                                    </select>
+                                </div>
+                                <div class="form-group checkbox-group">
+                                    <label>
+                                        <input type="checkbox" id="dark-mode"> Dark Mode
+                                    </label>
+                                </div>
+                                <div class="form-group checkbox-group">
+                                    <label>
+                                        <input type="checkbox" id="grammar-coloring"> Grammar Coloring
+                                    </label>
+                                </div>
+                                <div class="form-group checkbox-group">
+                                    <label>
+                                        <input type="checkbox" id="translation-overlay"> Translation Overlay
+                                    </label>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save Settings</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Modals -->
+        <div id="modal-overlay" class="modal-overlay hidden">
+            <!-- Add Word Modal -->
+            <div id="add-word-modal" class="modal">
+                <div class="modal-header">
+                    <h3>Add New Word</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <form id="add-word-form" class="modal-content">
+                    <div class="form-group">
+                        <label for="word-input">Word</label>
+                        <input type="text" id="word-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="translation-input">Translation</label>
+                        <input type="text" id="translation-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="context-input">Context</label>
+                        <textarea id="context-input" rows="3" placeholder="How is this word used?"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="tags-input">Tags (comma separated)</label>
+                        <input type="text" id="tags-input" placeholder="e.g., food, travel, business">
+                    </div>
+                    <div class="form-group">
+                        <label for="notes-input">Notes</label>
+                        <textarea id="notes-input" rows="2" placeholder="Personal notes..."></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-outline modal-cancel">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Word</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div id="toast-container" class="toast-container"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/app.js"></script>
+</body>
+</html>
