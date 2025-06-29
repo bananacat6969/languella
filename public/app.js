@@ -1,740 +1,402 @@
-The prompt involves updating an existing JavaScript file to address authentication flow issues, enhance sign-in and sign-up processes, integrate email confirmation, update the forgot password functionality, and handle main page loading. The provided changes will be applied meticulously to ensure a complete and functional code file.
-```
+let currentUser = null;
+let currentConversation = null;
+let vocabulary = [];
+let conversations = [];
 
-```javascript
-class LanguellaApp {
-  constructor() {
-    this.currentUser = null;
-    this.currentConversation = null;
-    this.currentPage = 'chat';
-    this.vocabulary = [];
-    this.conversations = [];
-    this.init();
-  }
+// Initialize app when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    init();
+});
 
-  async init() {
-    // Show loading screen
-    this.showElement('loading-screen');
+async function init() {
+    showScreen('loading');
 
     // Check authentication
     const token = localStorage.getItem('auth_token');
     if (token) {
-      try {
-        await this.loadUserProfile();
-        await this.loadConversations();
-        await this.loadVocabulary();
-        this.showMainApp();
-      } catch (error) {
-        console.error('Auth error:', error);
-        this.showAuth();
-      }
+        try {
+            const response = await fetch('/api/auth/me', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                currentUser = data.user;
+                showScreen('main');
+                await loadUserData();
+            } else {
+                localStorage.removeItem('auth_token');
+                showScreen('auth');
+            }
+        } catch (error) {
+            console.error('Auth check error:', error);
+            localStorage.removeItem('auth_token');
+            showScreen('auth');
+        }
     } else {
-      this.showAuth();
+        showScreen('auth');
     }
 
-    this.setupEventListeners();
-    this.hideElement('loading-screen');
-  }
+    setupEventListeners();
+}
 
-  // Authentication Methods
-  async showAuth() {
-    this.hideElement('main-app');
-    this.showElement('auth-container');
-    this.showElement('login-screen');
-  }
-
-  async showMainApp() {
-    this.hideElement('auth-container');
-    this.showElement('main-app');
-    this.updateUI();
-  }
-
-  async login(email, password) {
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
-
-      localStorage.setItem('auth_token', data.token);
-      this.currentUser = data.user;
-
-      await this.loadConversations();
-      await this.loadVocabulary();
-      this.showMainApp();
-      this.showToast('Welcome back!', 'success');
-    } catch (error) {
-      this.showToast(error.message, 'error');
-    }
-  }
-
-  async register(name, email, password) {
-    try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password })
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
-
-      localStorage.setItem('auth_token', data.token);
-      this.currentUser = data.user;
-
-      this.showLanguageSelection();
-      this.showToast('Account created successfully!', 'success');
-    } catch (error) {
-      this.showToast(error.message, 'error');
-    }
-  }
-
-  showLanguageSelection() {
-    this.hideElement('login-screen');
-    this.hideElement('signup-screen');
-    this.showElement('language-selection-screen');
-  }
-
-  async setStudyLanguage(language) {
-    try {
-      const response = await fetch('/api/user/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        },
-        body: JSON.stringify({ study_language: language })
-      });
-
-      if (!response.ok) throw new Error('Failed to update language');
-
-      await this.loadConversations();
-      await this.loadVocabulary();
-      this.showMainApp();
-      this.showToast(`Study language set to ${language}!`, 'success');
-    } catch (error) {
-      this.showToast(error.message, 'error');
-    }
-  }
-
-  async loadUserProfile() {
-    const response = await fetch('/api/user/profile', {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
+function showScreen(screenName) {
+    // Hide all screens
+    document.querySelectorAll('.screen').forEach(screen => {
+        screen.classList.add('hidden');
     });
 
-    if (!response.ok) throw new Error('Failed to load profile');
+    // Show target screen
+    const targetScreen = document.getElementById(`${screenName}-screen`);
+    if (targetScreen) {
+        targetScreen.classList.remove('hidden');
+    }
 
-    const data = await response.json();
-    this.currentUser = data.profile;
-  }
+    // Show specific auth screens
+    if (screenName === 'auth') {
+        document.getElementById('auth-container')?.classList.remove('hidden');
+        document.getElementById('login-screen')?.classList.remove('hidden');
+        document.getElementById('signup-screen')?.classList.add('hidden');
+        document.getElementById('language-selection-screen')?.classList.add('hidden');
+    }
 
-  logout() {
+    if (screenName === 'main') {
+        document.getElementById('main-app')?.classList.remove('hidden');
+        document.getElementById('auth-container')?.classList.add('hidden');
+    }
+}
+
+async function loadUserData() {
+    try {
+        await Promise.all([
+            loadConversations(),
+            loadVocabulary(),
+            loadUserProfile()
+        ]);
+        updateUI();
+    } catch (error) {
+        console.error('Error loading user data:', error);
+    }
+}
+
+// Authentication functions
+async function login(email, password) {
+    try {
+        const response = await fetch('/api/auth/signin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error);
+
+        localStorage.setItem('auth_token', data.session.access_token);
+        currentUser = data.user;
+        showScreen('main');
+        await loadUserData();
+        showToast('Welcome back!', 'success');
+    } catch (error) {
+        showToast(error.message, 'error');
+    }
+}
+
+async function signup(email, password, displayName) {
+    try {
+        const response = await fetch('/api/auth/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password, displayName })
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error);
+
+        showToast('Please check your email to confirm your account!', 'info');
+        showScreen('auth');
+    } catch (error) {
+        showToast(error.message, 'error');
+    }
+}
+
+function logout() {
     localStorage.removeItem('auth_token');
-    this.currentUser = null;
-    this.currentConversation = null;
-    this.vocabulary = [];
-    this.conversations = [];
-    this.showAuth();
-    this.showToast('Logged out successfully', 'info');
-  }
+    currentUser = null;
+    currentConversation = null;
+    vocabulary = [];
+    conversations = [];
+    showScreen('auth');
+    showToast('Logged out successfully', 'info');
+}
 
-  // Chat Methods
-  async loadConversations() {
+// Load functions
+async function loadConversations() {
     try {
-      const response = await fetch('/api/chat/conversations', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
-      });
+        const response = await fetch('/api/chat/conversations', {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
+        });
 
-      if (!response.ok) throw new Error('Failed to load conversations');
+        if (!response.ok) return;
 
-      const data = await response.json();
-      this.conversations = data.conversations;
-
-      if (this.conversations.length > 0 && !this.currentConversation) {
-        this.currentConversation = this.conversations[0];
-        await this.loadMessages();
-      }
+        const data = await response.json();
+        conversations = data.conversations || [];
     } catch (error) {
-      console.error('Load conversations error:', error);
+        console.error('Load conversations error:', error);
     }
-  }
+}
 
-  async createNewConversation() {
+async function loadVocabulary() {
     try {
-      const response = await fetch('/api/chat/conversations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        },
-        body: JSON.stringify({ title: 'New Conversation' })
-      });
+        const response = await fetch('/api/vocabulary', {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
+        });
 
-      if (!response.ok) throw new Error('Failed to create conversation');
+        if (!response.ok) return;
 
-      const data = await response.json();
-      this.currentConversation = data.conversation;
-      this.conversations.unshift(data.conversation);
-
-      this.clearChatMessages();
-      this.showWelcomeMessage();
-      this.showToast('New conversation started!', 'success');
+        const data = await response.json();
+        vocabulary = data.vocabulary || [];
     } catch (error) {
-      this.showToast(error.message, 'error');
+        console.error('Load vocabulary error:', error);
     }
-  }
+}
 
-  async loadMessages() {
-    if (!this.currentConversation) return;
-
+async function loadUserProfile() {
     try {
-      const response = await fetch(`/api/chat/conversations/${this.currentConversation.id}/messages`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
-      });
+        const response = await fetch('/api/user/profile', {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
+        });
 
-      if (!response.ok) throw new Error('Failed to load messages');
+        if (!response.ok) return;
 
-      const data = await response.json();
-      this.displayMessages(data.messages);
+        const data = await response.json();
+        if (data.profile) {
+            currentUser = { ...currentUser, ...data.profile };
+        }
     } catch (error) {
-      console.error('Load messages error:', error);
+        console.error('Load profile error:', error);
     }
-  }
+}
 
-  async sendMessage(content) {
-    if (!this.currentConversation) {
-      await this.createNewConversation();
+// Chat functions
+async function sendMessage(content) {
+    if (!currentConversation) {
+        await createNewConversation();
     }
 
     const messagesContainer = document.getElementById('chat-messages');
 
-    // Add user message immediately
-    this.addMessageToUI('user', content);
+    // Add user message
+    addMessageToUI('user', content);
 
     // Add typing indicator
     const typingDiv = document.createElement('div');
     typingDiv.className = 'message ai-message typing';
     typingDiv.innerHTML = `
-      <div class="message-content">
-        <div class="typing-indicator">
-          <span></span><span></span><span></span>
+        <div class="message-content">
+            <div class="typing-indicator">
+                <span></span><span></span><span></span>
+            </div>
         </div>
-      </div>
     `;
     messagesContainer.appendChild(typingDiv);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
     try {
-      const response = await fetch(`/api/chat/conversations/${this.currentConversation.id}/messages`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        },
-        body: JSON.stringify({ content })
-      });
+        const response = await fetch(`/api/chat/conversations/${currentConversation.id}/messages`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+            },
+            body: JSON.stringify({ content })
+        });
 
-      if (!response.ok) throw new Error('Failed to send message');
+        if (!response.ok) throw new Error('Failed to send message');
 
-      const data = await response.json();
-
-      // Remove typing indicator
-      typingDiv.remove();
-
-      // Add AI response
-      this.addMessageToUI('assistant', data.aiMessage.content);
-
+        const data = await response.json();
+        typingDiv.remove();
+        addMessageToUI('assistant', data.aiMessage.content);
     } catch (error) {
-      typingDiv.remove();
-      this.showToast('Failed to send message', 'error');
+        typingDiv.remove();
+        showToast('Failed to send message', 'error');
     }
-  }
+}
 
-  displayMessages(messages) {
-    const messagesContainer = document.getElementById('chat-messages');
-    messagesContainer.innerHTML = '';
+async function createNewConversation() {
+    try {
+        const response = await fetch('/api/chat/conversations', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+            },
+            body: JSON.stringify({ title: 'New Conversation' })
+        });
 
-    if (messages.length === 0) {
-      this.showWelcomeMessage();
-      return;
+        if (!response.ok) throw new Error('Failed to create conversation');
+
+        const data = await response.json();
+        currentConversation = data.conversation;
+        conversations.unshift(data.conversation);
+    } catch (error) {
+        console.error('Create conversation error:', error);
     }
+}
 
-    messages.forEach(message => {
-      this.addMessageToUI(message.role, message.content);
-    });
-  }
-
-  addMessageToUI(role, content) {
+function addMessageToUI(role, content) {
     const messagesContainer = document.getElementById('chat-messages');
     const messageDiv = document.createElement('div');
 
     messageDiv.className = `message ${role === 'user' ? 'user-message' : 'ai-message'}`;
     messageDiv.innerHTML = `
-      <div class="message-content">
-        <p>${this.escapeHtml(content)}</p>
-        ${role === 'assistant' ? `
-          <div class="message-actions">
-            <button class="action-btn" onclick="app.translateText('${this.escapeHtml(content)}')">
-              <i class="fas fa-language"></i> Translate
-            </button>
-            <button class="action-btn" onclick="app.explainText('${this.escapeHtml(content)}')">
-              <i class="fas fa-info-circle"></i> Explain
-            </button>
-          </div>
-        ` : ''}
-      </div>
+        <div class="message-content">
+            <p>${escapeHtml(content)}</p>
+        </div>
     `;
 
     messagesContainer.appendChild(messageDiv);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
-  }
+}
 
-  showWelcomeMessage() {
-    const messagesContainer = document.getElementById('chat-messages');
-    const language = this.currentUser?.study_language || 'Spanish';
-    const welcomeMessages = {
-      spanish: '¡Hola! I\'m your AI language tutor. Let\'s practice your Spanish together! 🌟',
-      french: 'Bonjour! I\'m your AI language tutor. Let\'s practice your French together! 🌟',
-      german: 'Hallo! I\'m your AI language tutor. Let\'s practice your German together! 🌟',
-      italian: 'Ciao! I\'m your AI language tutor. Let\'s practice your Italian together! 🌟'
-    };
-
-    messagesContainer.innerHTML = `
-      <div class="welcome-message">
-        <div class="message ai-message">
-          <div class="message-content">
-            <p>${welcomeMessages[language] || welcomeMessages.spanish}</p>
-            <div class="message-actions">
-              <button class="action-btn" onclick="app.translateText('${welcomeMessages[language]}')">
-                <i class="fas fa-language"></i> Translate
-              </button>
-              <button class="action-btn" onclick="app.explainText('${welcomeMessages[language]}')">
-                <i class="fas fa-info-circle"></i> Explain
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  clearChatMessages() {
-    document.getElementById('chat-messages').innerHTML = '';
-  }
-
-  async translateText(text) {
-    try {
-      const response = await fetch('/api/chat/translate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        },
-        body: JSON.stringify({ text })
-      });
-
-      if (!response.ok) throw new Error('Translation failed');
-
-      const data = await response.json();
-      this.showToast(`Translation: ${data.translation}`, 'info');
-    } catch (error) {
-      this.showToast('Translation failed', 'error');
-    }
-  }
-
-  async explainText(text) {
-    try {
-      const response = await fetch('/api/chat/explain', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        },
-        body: JSON.stringify({ text })
-      });
-
-      if (!response.ok) throw new Error('Explanation failed');
-
-      const data = await response.json();
-      this.showModal('Explanation', data.explanation);
-    } catch (error) {
-      this.showToast('Explanation failed', 'error');
-    }
-  }
-
-  // Vocabulary Methods
-  async loadVocabulary() {
-    try {
-      const response = await fetch('/api/vocabulary', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
-      });
-
-      if (!response.ok) throw new Error('Failed to load vocabulary');
-
-      const data = await response.json();
-      this.vocabulary = data.vocabulary;
-      this.updateVocabularyUI();
-    } catch (error) {
-      console.error('Load vocabulary error:', error);
-    }
-  }
-
-  async addVocabularyWord(wordData) {
-    try {
-      const response = await fetch('/api/vocabulary', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        },
-        body: JSON.stringify(wordData)
-      });
-
-      if (!response.ok) throw new Error('Failed to add word');
-
-      const data = await response.json();
-      this.vocabulary.unshift(data.vocabulary);
-      this.updateVocabularyUI();
-      this.showToast('Word added successfully!', 'success');
-    } catch (error) {
-      this.showToast(error.message, 'error');
-    }
-  }
-
-  updateVocabularyUI() {
-    const vocabularyList = document.getElementById('vocabulary-list');
-    if (!vocabularyList) return;
-
-    if (this.vocabulary.length === 0) {
-      vocabularyList.innerHTML = `
-        <div class="empty-state">
-          <i class="fas fa-book fa-3x"></i>
-          <h3>No vocabulary words yet</h3>
-          <p>Start adding words from your conversations or manually add them.</p>
-        </div>
-      `;
-      return;
-    }
-
-    vocabularyList.innerHTML = this.vocabulary.map(word => `
-      <div class="vocabulary-item">
-        <div class="vocab-word">
-          <strong>${this.escapeHtml(word.word)}</strong>
-          <span class="vocab-translation">${this.escapeHtml(word.translation)}</span>
-        </div>
-        <div class="vocab-meta">
-          <span class="strength-badge strength-${word.strength}">${word.strength}</span>
-          ${word.tags ? `<div class="vocab-tags">${word.tags.split(',').map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}</div>` : ''}
-        </div>
-      </div>
-    `).join('');
-  }
-
-  // Navigation
-  switchPage(pageName) {
-    // Update navigation
+// Navigation
+function switchPage(pageName) {
     document.querySelectorAll('.nav-link, .nav-item').forEach(link => {
-      link.classList.remove('active');
+        link.classList.remove('active');
     });
 
     document.querySelectorAll(`[data-page="${pageName}"]`).forEach(link => {
-      link.classList.add('active');
+        link.classList.add('active');
     });
 
-    // Show/hide pages
     document.querySelectorAll('.page').forEach(page => {
-      page.classList.remove('active');
+        page.classList.remove('active');
     });
 
     const targetPage = document.getElementById(`${pageName}-page`);
     if (targetPage) {
-      targetPage.classList.add('active');
-      this.currentPage = pageName;
+        targetPage.classList.add('active');
+    }
+}
+
+function updateUI() {
+    // Update any UI elements that depend on user data
+    if (currentUser) {
+        const profileName = document.getElementById('profile-name');
+        if (profileName) {
+            profileName.textContent = currentUser.display_name || currentUser.email || 'User';
+        }
+    }
+}
+
+// Event listeners
+function setupEventListeners() {
+    // Login form
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            login(email, password);
+        });
     }
 
-    // Load page-specific data
-    if (pageName === 'vocabulary') {
-      this.updateVocabularyUI();
-    } else if (pageName === 'profile') {
-      this.updateProfileUI();
+    // Signup form
+    const signupForm = document.getElementById('signup-form');
+    if (signupForm) {
+        signupForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const displayName = document.getElementById('signup-name').value;
+            signup(email, password, displayName);
+        });
     }
-  }
-
-  updateProfileUI() {
-    if (!this.currentUser) return;
-
-    document.getElementById('profile-name').textContent = this.currentUser.display_name || 'User';
-    document.getElementById('profile-email').textContent = this.currentUser.email || '';
-    document.getElementById('streak-count').textContent = this.currentUser.current_streak || 0;
-    document.getElementById('words-learned').textContent = this.vocabulary.length;
-
-    // Update settings
-    const studyLanguageSelect = document.getElementById('study-language');
-    if (studyLanguageSelect) {
-      studyLanguageSelect.value = this.currentUser.study_language || 'spanish';
-    }
-
-    const difficultySelect = document.getElementById('difficulty-level');
-    if (difficultySelect) {
-      difficultySelect.value = this.currentUser.difficulty_level || 'beginner';
-    }
-  }
-
-  updateUI() {
-    if (this.currentPage === 'chat') {
-      this.showWelcomeMessage();
-    }
-    this.updateProfileUI();
-  }
-
-  // Event Listeners
-  setupEventListeners() {
-    // Auth forms
-    document.getElementById('login-form')?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const email = document.getElementById('login-email').value;
-      const password = document.getElementById('login-password').value;
-      this.login(email, password);
-    });
-
-    document.getElementById('signup-form')?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const name = document.getElementById('signup-name').value;
-      const email = document.getElementById('signup-email').value;
-      const password = document.getElementById('signup-password').value;
-      this.register(name, email, password);
-    });
 
     // Auth navigation
-    document.getElementById('show-signup')?.addEventListener('click', (e) => {
-      e.preventDefault();
-      this.hideElement('login-screen');
-      this.showElement('signup-screen');
-    });
+    const showSignup = document.getElementById('show-signup');
+    if (showSignup) {
+        showSignup.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('signup-screen').classList.remove('hidden');
+        });
+    }
 
-    document.getElementById('show-login')?.addEventListener('click', (e) => {
-      e.preventDefault();
-      this.hideElement('signup-screen');
-      this.showElement('login-screen');
-    });
+    const showLogin = document.getElementById('show-login');
+    if (showLogin) {
+        showLogin.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('signup-screen').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+        });
+    }
 
-    // Language selection
-    document.querySelectorAll('.language-card').forEach(card => {
-      card.addEventListener('click', () => {
-        const language = card.dataset.language;
-        this.setStudyLanguage(language);
-      });
-    });
-
-    // Chat
-    document.getElementById('chat-form')?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const input = document.getElementById('chat-input');
-      const content = input.value.trim();
-      if (content) {
-        this.sendMessage(content);
-        input.value = '';
-        input.style.height = 'auto';
-      }
-    });
-
-    // Auto-resize textarea
-    document.getElementById('chat-input')?.addEventListener('input', (e) => {
-      e.target.style.height = 'auto';
-      e.target.style.height = e.target.scrollHeight + 'px';
-    });
-
-    // New conversation
-    document.getElementById('new-conversation-btn')?.addEventListener('click', () => {
-      this.createNewConversation();
-    });
+    // Chat form
+    const chatForm = document.getElementById('chat-form');
+    if (chatForm) {
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const content = input.value.trim();
+            if (content) {
+                sendMessage(content);
+                input.value = '';
+            }
+        });
+    }
 
     // Navigation
     document.querySelectorAll('[data-page]').forEach(link => {
-      link.addEventListener('click', (e) => {
-        e.preventDefault();
-        const page = link.dataset.page;
-        this.switchPage(page);
-      });
-    });
-
-    // Add word modal
-    document.getElementById('add-word-btn')?.addEventListener('click', () => {
-      this.showElement('modal-overlay');
-      this.showElement('add-word-modal');
-    });
-
-    document.getElementById('add-word-form')?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-      const wordData = {
-        word: formData.get('word'),
-        translation: formData.get('translation'),
-        context: formData.get('context'),
-        tags: formData.get('tags'),
-        notes: formData.get('notes')
-      };
-      this.addVocabularyWord(wordData);
-      this.hideElement('modal-overlay');
-      e.target.reset();
-    });
-
-    // Modal close
-    document.querySelectorAll('.modal-close, .modal-cancel').forEach(btn => {
-      btn.addEventListener('click', () => {
-        this.hideElement('modal-overlay');
-      });
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const page = link.dataset.page;
+            switchPage(page);
+        });
     });
 
     // Logout
-    document.getElementById('logout-btn')?.addEventListener('click', () => {
-      this.logout();
-    });
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', logout);
+    }
+}
 
-    // Settings form
-    document.getElementById('settings-form')?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-
-      try {
-        const response = await fetch('/api/user/profile', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-          },
-          body: JSON.stringify({
-            study_language: formData.get('study-language'),
-            difficulty_level: formData.get('difficulty-level'),
-            dark_mode: formData.get('dark-mode') === 'on',
-            grammar_hints: formData.get('grammar-coloring') === 'on',
-            auto_translate: formData.get('translation-overlay') === 'on'
-          })
-        });
-
-        if (!response.ok) throw new Error('Failed to update settings');
-
-        await this.loadUserProfile();
-        this.showToast('Settings saved!', 'success');
-      } catch (error) {
-        this.showToast(error.message, 'error');
-      }
-    });
-  }
-
-  // Utility Methods
-  showElement(id) {
-    const element = document.getElementById(id);
-    if (element) element.classList.remove('hidden');
-  }
-
-  hideElement(id) {
-    const element = document.getElementById(id);
-    if (element) element.classList.add('hidden');
-  }
-
-  escapeHtml(unsafe) {
+// Utility functions
+function escapeHtml(unsafe) {
     return unsafe
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 
-  showToast(message, type = 'info') {
+function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
+    if (!container) return;
+
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.innerHTML = `
-      <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'info'}-circle"></i>
-      <span>${message}</span>
+        <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'info'}-circle"></i>
+        <span>${message}</span>
     `;
 
     container.appendChild(toast);
 
     setTimeout(() => {
-      toast.classList.add('show');
+        toast.classList.add('show');
     }, 100);
 
     setTimeout(() => {
-      toast.classList.remove('show');
-      setTimeout(() => container.removeChild(toast), 300);
-    }, 3000);
-  }
-
-  showModal(title, content) {
-    // Create a simple modal for explanations
-    const modal = document.createElement('div');
-    modal.className = 'modal-overlay';
-    modal.innerHTML = `
-      <div class="modal">
-        <div class="modal-header">
-          <h3>${title}</h3>
-          <button class="modal-close">&times;</button>
-        </div>
-        <div class="modal-content">
-          <p style="white-space: pre-wrap;">${content}</p>
-        </div>
-      </div>
-    `;
-
-    document.body.appendChild(modal);
-
-    modal.querySelector('.modal-close').addEventListener('click', () => {
-      document.body.removeChild(modal);
-    });
-
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        document.body.removeChild(modal);
-      }
-    });
-  }
-}
-
-// Initialize app
-document.addEventListener('DOMContentLoaded', () => {
-    checkAuthState();
-    setupEventListeners();
-
-    // Show loading initially
-    showScreen('loading');
-
-    // Check authentication state
-    setTimeout(async () => {
-        const token = localStorage.getItem('auth_token');
-        if (token) {
-            try {
-                const response = await fetch('/api/auth/me', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    currentUser = data.user;
-                    showScreen('main');
-                    loadUserProfile();
-                } else {
-                    localStorage.removeItem('auth_token');
-                    showScreen('auth');
-                }
-            } catch (error) {
-                console.error('Auth check error:', error);
-                localStorage.removeItem('auth_token');
-                showScreen('auth');
+        toast.classList.remove('show');
+        setTimeout(() => {
+            if (container.contains(toast)) {
+                container.removeChild(toast);
             }
-        } else {
-            showScreen('auth');
-        }
-    }, 1000);
-});
-
-// Forgot password now handled by separate page
-</replit_final_file>
+        }, 300);
+    }, 3000);
+}
