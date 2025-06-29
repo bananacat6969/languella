@@ -13,8 +13,15 @@ const vocabularyRoutes = require('./routes/vocabulary');
 const userRoutes = require('./routes/user');
 const practiceRoutes = require('./routes/practice');
 
+const { initializeDatabase } = require('./scripts/init-db');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Initialize database on startup
+if (process.env.NODE_ENV === 'production') {
+  initializeDatabase().catch(console.error);
+}
 
 // Security middleware
 app.use(helmet({
