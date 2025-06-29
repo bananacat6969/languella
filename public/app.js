@@ -1,3 +1,4 @@
+
 let currentUser = null;
 let currentConversation = null;
 let vocabulary = [];
@@ -43,6 +44,8 @@ async function init() {
 }
 
 function showScreen(screenName) {
+    console.log('Switching to screen:', screenName);
+    
     // Hide all screens
     document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.add('hidden');
@@ -56,15 +59,28 @@ function showScreen(screenName) {
 
     // Show specific auth screens
     if (screenName === 'auth') {
-        document.getElementById('auth-container')?.classList.remove('hidden');
-        document.getElementById('login-screen')?.classList.remove('hidden');
-        document.getElementById('signup-screen')?.classList.add('hidden');
-        document.getElementById('language-selection-screen')?.classList.add('hidden');
+        const authContainer = document.getElementById('auth-container');
+        const loginScreen = document.getElementById('login-screen');
+        const signupScreen = document.getElementById('signup-screen');
+        const languageScreen = document.getElementById('language-selection-screen');
+        
+        if (authContainer) authContainer.classList.remove('hidden');
+        if (loginScreen) loginScreen.classList.remove('hidden');
+        if (signupScreen) signupScreen.classList.add('hidden');
+        if (languageScreen) languageScreen.classList.add('hidden');
     }
 
     if (screenName === 'main') {
-        document.getElementById('main-app')?.classList.remove('hidden');
-        document.getElementById('auth-container')?.classList.add('hidden');
+        const mainApp = document.getElementById('main-app');
+        const authContainer = document.getElementById('auth-container');
+        
+        if (mainApp) mainApp.classList.remove('hidden');
+        if (authContainer) authContainer.classList.add('hidden');
+    }
+
+    if (screenName === 'loading') {
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) loadingScreen.classList.remove('hidden');
     }
 }
 
@@ -361,6 +377,15 @@ function setupEventListeners() {
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', logout);
+    }
+
+    // Forgot password link
+    const forgotPasswordLink = document.getElementById('forgot-password-link');
+    if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = '/forgot.html';
+        });
     }
 }
 
