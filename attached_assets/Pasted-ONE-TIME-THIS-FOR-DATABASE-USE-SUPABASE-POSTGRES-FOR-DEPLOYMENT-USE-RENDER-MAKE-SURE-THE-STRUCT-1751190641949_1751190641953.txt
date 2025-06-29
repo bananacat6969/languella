@@ -1,0 +1,288 @@
+ONE TIME THIS 
+
+FOR DATABASE USE SUPABASE POSTGRES
+FOR DEPLOYMENT USE RENDER MAKE SURE THE STRUCTURE IS JUST WHAT RENDER NEEDS FOLLOW RENDER'S IDEAL PROJECT STRUCTURE
+FRONTEND_URL="https://languella.onrender.com/"
+OPENROUTER_API_KEY="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"
+NODE_ENV="production"
+SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdtYnp4cmpweGxtcnh6Y3RrZGhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTExNzg5NTIsImV4cCI6MjA2Njc1NDk1Mn0.F764UTFgDxaGWfdnq_KVZyHnhQm-n4Y2_sgIJQ5IVmA"
+SUPABASE_URL="https://gmbzxrjpxlmrxzctkdhf.supabase.co"
+DIRECT CONNECTION URL POSTGRES  = postgresql://postgres:[YOUR-PASSWORD]@db.gmbzxrjpxlmrxzctkdhf.supabase.co:5432/postgres
+
+
+Full Replit Prompt (No Guest, Node.js + Supabase + Render + AI + Advanced UI/UX):
+Build a full-stack Node.js language learning web app with Supabase (for authentication: signup, login, confirm email, forgot password, change email), deployable to Render. Do not implement a guest mode — all users must be authenticated.
+
+The platform allows users to chat with an AI that teaches them a language. When the user logs in for the first time, the app should ask:
+“What language do you want to study?”
+That language becomes their primary study language and is stored in the database (Supabase).
+
+From then on, the AI automatically chats in that language. The user can still ask questions in any language, but the replies default to the study language unless changed. The AI should also detect user mistakes and offer gentle corrections.
+
+✅ AI Chat System (Language Learning-Focused)
+
+AI prompts user to select a language to study
+
+AI uses that language in replies by default
+
+AI highlights grammar mistakes, suggests corrections
+
+Messages have optional translation overlay (under each message)
+
+Color-code translation: verbs (red), nouns (blue), adjectives (green), particles (gray), etc.
+
+✅ Interactive Learning Features
+
+Users can highlight text in either their own or AI’s messages
+
+Highlight menu shows:
+
+“Explain this” → grammatical + usage breakdown
+
+“Translate” → inline translation (preserves color coding)
+
+“Break this down” → splits sentence into vocab + grammar parts
+
+“Add to vocab list” → opens save dialog with custom tags/notes
+
+Saved words/phrases stored in Supabase per user
+
+✅ Study Tools Section
+
+Vocab page with saved items + tags
+
+Flashcard practice mode (spaced repetition, reveal definition, quiz mode)
+
+Sentence practice: AI generates cloze tests using saved words
+
+Daily review: 5 flashcards + 1 cloze test per day
+
+✅ UI/UX Requirements
+
+Claude-style aesthetic: minimal, elegant, feminine-leaning
+
+Rounded cards, light neutral tones, wide padding, soft shadows
+
+App-like feel: use sticky bottom nav on mobile, fluid transitions, modals/panels for vocab and settings
+
+Chat screen should feel like a mobile app (single-column focus)
+
+Sidebar/drawer on desktop with: Home, Vocab, Practice, Settings
+
+✅ Account Management (Supabase)
+
+Login, signup, email confirmation
+
+Forgot password flow
+
+Change email from settings
+
+Store language choice, saved vocab, chat history per user
+
+No guest access
+
+✅ Deployment / Stack
+
+Backend: Node.js
+
+Authentication & DB: Supabase
+
+Hosting: Render
+
+Should work in both dev and deployed environments
+
+✅ Nice-to-Have (Optional but preferred if possible):
+
+Ability to toggle between beginner/intermediate/advanced mode
+
+Tooltip hints for grammar breakdowns
+
+Progress tracking (XP or streak system, stored in Supabase)
+
+Enable "Dark mode" toggle
+
+Do not use generic ChatGPT clone layout. This is a specialized language-learning platform with advanced interactivity and must reflect that in both the UX and feature integration. Prioritize polish, responsiveness, and feature cohesion.
+
+
+
+Onboarding Flow
+First-time users are asked:
+“Which language would you like to study?”
+
+This sets the context for the AI automatically.
+
+Store this in Supabase per user or localStorage for guests.
+
+Smart AI Chat
+Users type in any language.
+
+Claude auto-detects and responds in the target language.
+
+Replies include:
+
+Translation toggle below each message
+
+Color-coded grammar assist (e.g. nouns = blue, verbs = red)
+
+Option to “Explain This” for any sentence or highlighted phrase
+
+✅ 1. Highlight + Right-Click → “Explain This”
+Users highlight any word or phrase in the AI’s message or their own
+
+Dropdown options:
+
+“Explain grammar”
+
+“Break down syntax”
+
+“Literal vs natural translation”
+
+“Add to vocab list”
+
+“Show similar phrases”
+
+✅ 2. Dynamic Grammar Coloring
+Color-coded sentences:
+
+Verbs = red, nouns = blue, adjectives = green, particles = purple
+
+Toggle on/off via settings
+
+Works on AI messages and user messages
+
+✅ 3. Instant Backtranslation
+After user replies in target language:
+
+AI shows the reverse translation:
+“Here’s how a native speaker might say this in English”
+
+Helps reinforce intent vs accuracy
+
+✅ 4. “Fix My Sentence” Mode
+User writes a sentence
+
+AI:
+
+Shows corrected version
+
+Explains why it was wrong
+
+Shows alternative expressions with nuance breakdowns
+
+✅ 5. Sentence Difficulty Estimator
+Hover over AI reply → See CEFR level (A2, B1, C1, etc.)
+
+Encourages level awareness
+
+Settings: “Keep responses under B2” or “Push me to C1+”
+
+📚 Vocabulary Mastery System
+✅ 6. Vocab Collector (From Anywhere)
+Click any word → modal pops up:
+
+Add translation
+
+Add personal note/context
+
+Tag (e.g., Business, Food, Romance)
+
+Mark “Known / Learning / Need Practice”
+
+Synced to Supabase
+
+Automatically shows example sentences with that word
+
+✅ 7. Daily Smart Review (like Anki but better)
+Pulls 10–20 saved words/phrases
+
+Mixed modes:
+
+Flashcard
+
+Fill-in-the-blank
+
+Sentence reconstruction
+
+Listening and writing
+
+✅ 8. Word Evolution Tracker
+Each saved word has:
+
+Date added
+
+Contexts where used
+
+Strength score based on usage
+
+“Last time you used this: 4 days ago”
+
+🎮 Engagement & Motivation
+✅ 9. “Chat Quests”
+Short missions like:
+
+“Buy fruit at a market (in Spanish)”
+
+“Tell a friend you’re feeling sick (in Japanese)”
+
+AI roleplays accordingly, evaluates how natural you sounded
+
+✅ 10. Streaks + Achievements
+Language streak
+
+“You used 5 new words today!”
+
+“You wrote a grammatically perfect B2 sentence!”
+
+🔍 Researcher Tools (for nerds and language lovers)
+✅ 11. Word Origin Inspector
+See etymology of any word with 1 click
+
+Shows how it evolved in that language
+
+Borrowed words from other languages marked with tooltip
+
+✅ 12. Live Dictionary Switching
+DeepL, Glosbe, Jisho (for Japanese), Wiktionary
+
+When hovering, option to open in one click
+
+✅ 13. Comparison Tool: “How would this sound in…”
+Highlight sentence → “Show how this would sound in X language”
+
+Useful for multilingual users
+
+🧩 Power User Modes
+✅ 14. Toggle AI Personas
+Teacher, Friend, Parent, Interviewer, Date, Enemy (for practice in emotional tone)
+
+Affects tone and grammar used
+
+✅ 15. Save Entire Conversations
+Export full chats as:
+
+Study doc (with grammar notes and translations)
+
+PDF / Markdown
+
+✅ 16. Immersion Mode
+Chat and UI switches fully to target language after beginner stage
+
+Optional hover hints remain for emergency understanding
+
+🧰 Infrastructure & UI
+✅ 17. Drag-and-Drop Vocab Review
+Reorder flashcards
+
+Tag/re-tag in bulk
+
+Merge duplicates
+
+✅ 18. Study Timeline
+Visual timeline of what you studied, what level of grammar, what words
+
+Timeline shows: “You mastered 22 A2 words this week.”
+
+✅ 19. Light/Dark Mode + Claude Mode
+Claude mode = soft beige/purple gradients, minimalist typography
+
+Optional anime or emoji UI themes for fun
