@@ -124,7 +124,7 @@ router.post('/forgot-password', [
 
   try {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.FRONTEND_URL}/reset-password`
+      redirectTo: `${process.env.FRONTEND_URL}/change.html`
     });
 
     if (error) {
@@ -162,6 +162,34 @@ router.post('/reset-password', [
     res.json({ message: 'Password updated successfully' });
   } catch (error) {
     console.error('Reset password error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Confirm email
+router.post('/confirm', [
+  body('token').exists()
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { token } = req.body;
+
+  try {
+    const { data, error } = await supabase.auth.verifyOtp({
+      token_hash: token,
+      type: 'signup'
+    });
+
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    res.json({ message: 'Email confirmed successfully', user: data.user });
+  } catch (error) {
+    console.error('Email confirmation error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

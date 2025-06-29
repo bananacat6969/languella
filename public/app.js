@@ -1,4 +1,7 @@
+The prompt involves updating an existing JavaScript file to address authentication flow issues, enhance sign-in and sign-up processes, integrate email confirmation, update the forgot password functionality, and handle main page loading. The provided changes will be applied meticulously to ensure a complete and functional code file.
+```
 
+```javascript
 class LanguellaApp {
   constructor() {
     this.currentUser = null;
@@ -12,7 +15,7 @@ class LanguellaApp {
   async init() {
     // Show loading screen
     this.showElement('loading-screen');
-    
+
     // Check authentication
     const token = localStorage.getItem('auth_token');
     if (token) {
@@ -28,7 +31,7 @@ class LanguellaApp {
     } else {
       this.showAuth();
     }
-    
+
     this.setupEventListeners();
     this.hideElement('loading-screen');
   }
@@ -59,7 +62,7 @@ class LanguellaApp {
 
       localStorage.setItem('auth_token', data.token);
       this.currentUser = data.user;
-      
+
       await this.loadConversations();
       await this.loadVocabulary();
       this.showMainApp();
@@ -82,7 +85,7 @@ class LanguellaApp {
 
       localStorage.setItem('auth_token', data.token);
       this.currentUser = data.user;
-      
+
       this.showLanguageSelection();
       this.showToast('Account created successfully!', 'success');
     } catch (error) {
@@ -108,7 +111,7 @@ class LanguellaApp {
       });
 
       if (!response.ok) throw new Error('Failed to update language');
-      
+
       await this.loadConversations();
       await this.loadVocabulary();
       this.showMainApp();
@@ -124,7 +127,7 @@ class LanguellaApp {
     });
 
     if (!response.ok) throw new Error('Failed to load profile');
-    
+
     const data = await response.json();
     this.currentUser = data.profile;
   }
@@ -147,10 +150,10 @@ class LanguellaApp {
       });
 
       if (!response.ok) throw new Error('Failed to load conversations');
-      
+
       const data = await response.json();
       this.conversations = data.conversations;
-      
+
       if (this.conversations.length > 0 && !this.currentConversation) {
         this.currentConversation = this.conversations[0];
         await this.loadMessages();
@@ -172,11 +175,11 @@ class LanguellaApp {
       });
 
       if (!response.ok) throw new Error('Failed to create conversation');
-      
+
       const data = await response.json();
       this.currentConversation = data.conversation;
       this.conversations.unshift(data.conversation);
-      
+
       this.clearChatMessages();
       this.showWelcomeMessage();
       this.showToast('New conversation started!', 'success');
@@ -194,7 +197,7 @@ class LanguellaApp {
       });
 
       if (!response.ok) throw new Error('Failed to load messages');
-      
+
       const data = await response.json();
       this.displayMessages(data.messages);
     } catch (error) {
@@ -208,10 +211,10 @@ class LanguellaApp {
     }
 
     const messagesContainer = document.getElementById('chat-messages');
-    
+
     // Add user message immediately
     this.addMessageToUI('user', content);
-    
+
     // Add typing indicator
     const typingDiv = document.createElement('div');
     typingDiv.className = 'message ai-message typing';
@@ -236,15 +239,15 @@ class LanguellaApp {
       });
 
       if (!response.ok) throw new Error('Failed to send message');
-      
+
       const data = await response.json();
-      
+
       // Remove typing indicator
       typingDiv.remove();
-      
+
       // Add AI response
       this.addMessageToUI('assistant', data.aiMessage.content);
-      
+
     } catch (error) {
       typingDiv.remove();
       this.showToast('Failed to send message', 'error');
@@ -254,7 +257,7 @@ class LanguellaApp {
   displayMessages(messages) {
     const messagesContainer = document.getElementById('chat-messages');
     messagesContainer.innerHTML = '';
-    
+
     if (messages.length === 0) {
       this.showWelcomeMessage();
       return;
@@ -268,7 +271,7 @@ class LanguellaApp {
   addMessageToUI(role, content) {
     const messagesContainer = document.getElementById('chat-messages');
     const messageDiv = document.createElement('div');
-    
+
     messageDiv.className = `message ${role === 'user' ? 'user-message' : 'ai-message'}`;
     messageDiv.innerHTML = `
       <div class="message-content">
@@ -285,7 +288,7 @@ class LanguellaApp {
         ` : ''}
       </div>
     `;
-    
+
     messagesContainer.appendChild(messageDiv);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
   }
@@ -299,7 +302,7 @@ class LanguellaApp {
       german: 'Hallo! I\'m your AI language tutor. Let\'s practice your German together! 🌟',
       italian: 'Ciao! I\'m your AI language tutor. Let\'s practice your Italian together! 🌟'
     };
-    
+
     messagesContainer.innerHTML = `
       <div class="welcome-message">
         <div class="message ai-message">
@@ -335,7 +338,7 @@ class LanguellaApp {
       });
 
       if (!response.ok) throw new Error('Translation failed');
-      
+
       const data = await response.json();
       this.showToast(`Translation: ${data.translation}`, 'info');
     } catch (error) {
@@ -355,7 +358,7 @@ class LanguellaApp {
       });
 
       if (!response.ok) throw new Error('Explanation failed');
-      
+
       const data = await response.json();
       this.showModal('Explanation', data.explanation);
     } catch (error) {
@@ -371,7 +374,7 @@ class LanguellaApp {
       });
 
       if (!response.ok) throw new Error('Failed to load vocabulary');
-      
+
       const data = await response.json();
       this.vocabulary = data.vocabulary;
       this.updateVocabularyUI();
@@ -392,7 +395,7 @@ class LanguellaApp {
       });
 
       if (!response.ok) throw new Error('Failed to add word');
-      
+
       const data = await response.json();
       this.vocabulary.unshift(data.vocabulary);
       this.updateVocabularyUI();
@@ -437,7 +440,7 @@ class LanguellaApp {
     document.querySelectorAll('.nav-link, .nav-item').forEach(link => {
       link.classList.remove('active');
     });
-    
+
     document.querySelectorAll(`[data-page="${pageName}"]`).forEach(link => {
       link.classList.add('active');
     });
@@ -446,7 +449,7 @@ class LanguellaApp {
     document.querySelectorAll('.page').forEach(page => {
       page.classList.remove('active');
     });
-    
+
     const targetPage = document.getElementById(`${pageName}-page`);
     if (targetPage) {
       targetPage.classList.add('active');
@@ -468,13 +471,13 @@ class LanguellaApp {
     document.getElementById('profile-email').textContent = this.currentUser.email || '';
     document.getElementById('streak-count').textContent = this.currentUser.current_streak || 0;
     document.getElementById('words-learned').textContent = this.vocabulary.length;
-    
+
     // Update settings
     const studyLanguageSelect = document.getElementById('study-language');
     if (studyLanguageSelect) {
       studyLanguageSelect.value = this.currentUser.study_language || 'spanish';
     }
-    
+
     const difficultySelect = document.getElementById('difficulty-level');
     if (difficultySelect) {
       difficultySelect.value = this.currentUser.difficulty_level || 'beginner';
@@ -596,7 +599,7 @@ class LanguellaApp {
     document.getElementById('settings-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
-      
+
       try {
         const response = await fetch('/api/user/profile', {
           method: 'PUT',
@@ -614,7 +617,7 @@ class LanguellaApp {
         });
 
         if (!response.ok) throw new Error('Failed to update settings');
-        
+
         await this.loadUserProfile();
         this.showToast('Settings saved!', 'success');
       } catch (error) {
@@ -651,13 +654,13 @@ class LanguellaApp {
       <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'info'}-circle"></i>
       <span>${message}</span>
     `;
-    
+
     container.appendChild(toast);
-    
+
     setTimeout(() => {
       toast.classList.add('show');
     }, 100);
-    
+
     setTimeout(() => {
       toast.classList.remove('show');
       setTimeout(() => container.removeChild(toast), 300);
@@ -679,13 +682,13 @@ class LanguellaApp {
         </div>
       </div>
     `;
-    
+
     document.body.appendChild(modal);
-    
+
     modal.querySelector('.modal-close').addEventListener('click', () => {
       document.body.removeChild(modal);
     });
-    
+
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
         document.body.removeChild(modal);
@@ -694,7 +697,44 @@ class LanguellaApp {
   }
 }
 
-// Initialize app when DOM is loaded
+// Initialize app
 document.addEventListener('DOMContentLoaded', () => {
-  window.app = new LanguellaApp();
+    checkAuthState();
+    setupEventListeners();
+
+    // Show loading initially
+    showScreen('loading');
+
+    // Check authentication state
+    setTimeout(async () => {
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+            try {
+                const response = await fetch('/api/auth/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = data.user;
+                    showScreen('main');
+                    loadUserProfile();
+                } else {
+                    localStorage.removeItem('auth_token');
+                    showScreen('auth');
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                localStorage.removeItem('auth_token');
+                showScreen('auth');
+            }
+        } else {
+            showScreen('auth');
+        }
+    }, 1000);
 });
+
+// Forgot password now handled by separate page
+</replit_final_file>

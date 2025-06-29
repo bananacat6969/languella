@@ -18,6 +18,9 @@ const { initializeDatabase } = require('./scripts/init-db');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust proxy for Render deployment
+app.set('trust proxy', 1);
+
 // Initialize database on startup
 if (process.env.NODE_ENV === 'production') {
   initializeDatabase().catch(console.error);

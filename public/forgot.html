@@ -1,0 +1,132 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forgot Password - Languella</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .forgot-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: var(--spacing-4);
+        }
+
+        .forgot-card {
+            background: white;
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-6);
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .forgot-header {
+            text-align: center;
+            margin-bottom: var(--spacing-6);
+        }
+
+        .forgot-title {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            margin-bottom: var(--spacing-2);
+            color: var(--gray-800);
+        }
+
+        .forgot-subtitle {
+            color: var(--gray-600);
+            font-size: var(--font-size-sm);
+        }
+
+        .success-message {
+            background: var(--success-bg);
+            border: 1px solid var(--success-color);
+            color: var(--success-color);
+            padding: var(--spacing-3);
+            border-radius: var(--border-radius);
+            margin-bottom: var(--spacing-4);
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="forgot-container">
+        <div class="forgot-card">
+            <div class="forgot-header">
+                <h1 class="forgot-title">Reset Password</h1>
+                <p class="forgot-subtitle">Enter your email address and we'll send you a link to reset your password</p>
+            </div>
+
+            <div id="success-message" class="success-message">
+                Check your email! We've sent you a password reset link.
+            </div>
+
+            <form id="forgot-form">
+                <div class="form-group">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        class="form-input" 
+                        placeholder="Enter your email"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full" id="forgot-btn">
+                    Send Reset Link
+                </button>
+
+                <div class="form-footer">
+                    <p>Remember your password? <a href="/" class="link">Sign in</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const forgotForm = document.getElementById('forgot-form');
+        const forgotBtn = document.getElementById('forgot-btn');
+        const successMessage = document.getElementById('success-message');
+
+        forgotForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            
+            forgotBtn.disabled = true;
+            forgotBtn.textContent = 'Sending...';
+
+            try {
+                const response = await fetch('/api/auth/forgot-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                if (response.ok) {
+                    successMessage.style.display = 'block';
+                    forgotForm.style.display = 'none';
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Failed to send reset email');
+                }
+            } catch (error) {
+                console.error('Forgot password error:', error);
+                alert('Network error. Please try again.');
+            } finally {
+                forgotBtn.disabled = false;
+                forgotBtn.textContent = 'Send Reset Link';
+            }
+        });
+    </script>
+</body>
+</html>

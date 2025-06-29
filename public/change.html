@@ -1,0 +1,187 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Change Password - Languella</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .change-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: var(--spacing-4);
+        }
+
+        .change-card {
+            background: white;
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-6);
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .change-header {
+            text-align: center;
+            margin-bottom: var(--spacing-6);
+        }
+
+        .change-title {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            margin-bottom: var(--spacing-2);
+            color: var(--gray-800);
+        }
+
+        .change-subtitle {
+            color: var(--gray-600);
+            font-size: var(--font-size-sm);
+        }
+
+        .password-requirements {
+            font-size: var(--font-size-xs);
+            color: var(--gray-500);
+            margin-top: var(--spacing-1);
+        }
+
+        .success-state {
+            text-align: center;
+            display: none;
+        }
+
+        .success-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--success-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--spacing-4);
+            font-size: 1.5rem;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="change-container">
+        <div class="change-card">
+            <div id="form-state">
+                <div class="change-header">
+                    <h1 class="change-title">Set New Password</h1>
+                    <p class="change-subtitle">Enter your new password below</p>
+                </div>
+
+                <form id="change-form">
+                    <div class="form-group">
+                        <label for="password" class="form-label">New Password</label>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            class="form-input" 
+                            placeholder="Enter new password"
+                            required
+                            minlength="6"
+                        >
+                        <div class="password-requirements">
+                            Password must be at least 6 characters long
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmPassword" class="form-label">Confirm Password</label>
+                        <input 
+                            type="password" 
+                            id="confirmPassword" 
+                            name="confirmPassword" 
+                            class="form-input" 
+                            placeholder="Confirm new password"
+                            required
+                            minlength="6"
+                        >
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-full" id="change-btn">
+                        Update Password
+                    </button>
+                </form>
+            </div>
+
+            <div id="success-state" class="success-state">
+                <div class="success-icon">✓</div>
+                <h2 class="change-title">Password Updated!</h2>
+                <p class="change-subtitle">Your password has been successfully changed.</p>
+                <a href="/" class="btn btn-primary">Sign In</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const changeForm = document.getElementById('change-form');
+        const changeBtn = document.getElementById('change-btn');
+        const formState = document.getElementById('form-state');
+        const successState = document.getElementById('success-state');
+
+        // Get access token from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const accessToken = urlParams.get('access_token');
+
+        if (!accessToken) {
+            alert('Invalid reset link. Please request a new password reset.');
+            window.location.href = '/forgot.html';
+        }
+
+        changeForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (password !== confirmPassword) {
+                alert('Passwords do not match');
+                return;
+            }
+
+            if (password.length < 6) {
+                alert('Password must be at least 6 characters long');
+                return;
+            }
+            
+            changeBtn.disabled = true;
+            changeBtn.textContent = 'Updating...';
+
+            try {
+                const response = await fetch('/api/auth/reset-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        password,
+                        access_token: accessToken
+                    })
+                });
+
+                if (response.ok) {
+                    formState.style.display = 'none';
+                    successState.style.display = 'block';
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Failed to update password');
+                }
+            } catch (error) {
+                console.error('Password change error:', error);
+                alert('Network error. Please try again.');
+            } finally {
+                changeBtn.disabled = false;
+                changeBtn.textContent = 'Update Password';
+            }
+        });
+    </script>
+</body>
+</html>
