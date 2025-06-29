@@ -307,7 +307,7 @@
                             <form id="settings-form">
                                 <div class="form-group">
                                     <label for="study-language">Study Language</label>
-                                    <select id="study-language">
+                                    <select id="study-language" name="study-language">
                                         <option value="spanish">Spanish</option>
                                         <option value="french">French</option>
                                         <option value="german">German</option>
@@ -320,7 +320,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="difficulty-level">Difficulty Level</label>
-                                    <select id="difficulty-level">
+                                    <select id="difficulty-level" name="difficulty-level">
                                         <option value="beginner">Beginner</option>
                                         <option value="intermediate">Intermediate</option>
                                         <option value="advanced">Advanced</option>
@@ -328,17 +328,17 @@
                                 </div>
                                 <div class="form-group checkbox-group">
                                     <label>
-                                        <input type="checkbox" id="dark-mode"> Dark Mode
+                                        <input type="checkbox" id="dark-mode" name="dark-mode"> Dark Mode
                                     </label>
                                 </div>
                                 <div class="form-group checkbox-group">
                                     <label>
-                                        <input type="checkbox" id="grammar-coloring"> Grammar Coloring
+                                        <input type="checkbox" id="grammar-coloring" name="grammar-coloring"> Grammar Coloring
                                     </label>
                                 </div>
                                 <div class="form-group checkbox-group">
                                     <label>
-                                        <input type="checkbox" id="translation-overlay"> Translation Overlay
+                                        <input type="checkbox" id="translation-overlay" name="translation-overlay"> Translation Overlay
                                     </label>
                                 </div>
                                 <button type="submit" class="btn btn-primary">Save Settings</button>
@@ -360,23 +360,23 @@
                 <form id="add-word-form" class="modal-content">
                     <div class="form-group">
                         <label for="word-input">Word</label>
-                        <input type="text" id="word-input" required>
+                        <input type="text" id="word-input" name="word" required>
                     </div>
                     <div class="form-group">
                         <label for="translation-input">Translation</label>
-                        <input type="text" id="translation-input" required>
+                        <input type="text" id="translation-input" name="translation" required>
                     </div>
                     <div class="form-group">
                         <label for="context-input">Context</label>
-                        <textarea id="context-input" rows="3" placeholder="How is this word used?"></textarea>
+                        <textarea id="context-input" name="context" rows="3" placeholder="How is this word used?"></textarea>
                     </div>
                     <div class="form-group">
                         <label for="tags-input">Tags (comma separated)</label>
-                        <input type="text" id="tags-input" placeholder="e.g., food, travel, business">
+                        <input type="text" id="tags-input" name="tags" placeholder="e.g., food, travel, business">
                     </div>
                     <div class="form-group">
                         <label for="notes-input">Notes</label>
-                        <textarea id="notes-input" rows="2" placeholder="Personal notes..."></textarea>
+                        <textarea id="notes-input" name="notes" rows="2" placeholder="Personal notes..."></textarea>
                     </div>
                     <div class="modal-actions">
                         <button type="button" class="btn btn-outline modal-cancel">Cancel</button>
